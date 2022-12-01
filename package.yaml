@@ -1,0 +1,46 @@
+name: placeholder-name
+version: 0.1.0.0
+#synopsis:
+#description:
+homepage: https://github.com/placeholder-github-username/placeholder-name#readme
+license: BSD3
+author: placeholder-author-name
+maintainer: placeholder-author-email
+copyright: 2022 placeholder-author-name
+category: Web
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
+
+dependencies:
+  - base >= 4.7 && < 5
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-home-modules
+  - -Wpartial-fields
+  - -Wredundant-constraints
+
+library:
+  source-dirs: src
+
+executables:
+  placeholder-name:
+    source-dirs: app
+    main: Main.hs
+    dependencies:
+      - placeholder-name
+
+tests:
+  placeholder-name-test:
+    source-dirs: test
+    main: Spec.hs
+    dependencies:
+      - placeholder-name
+      - hspec
+      - QuickCheck
+      - generic-random
