@@ -1,16 +1,15 @@
-name: placeholder-name
+name: aoc2022
 version: 0.1.0.0
 #synopsis:
 #description:
-homepage: https://github.com/placeholder-github-username/placeholder-name#readme
+homepage: https://github.com/raymond-h/advent-of-code-2022#readme
 license: BSD3
-author: placeholder-author-name
-maintainer: placeholder-author-email
-copyright: 2022 placeholder-author-name
+author: Raymond Hammarling
+maintainer: raykay.rh@gmail.com
+copyright: 2022 Raymond Hammarling
 category: Web
 extra-source-files:
   - README.md
-  - CHANGELOG.md
 
 dependencies:
   - base >= 4.7 && < 5
@@ -29,18 +28,18 @@ library:
   source-dirs: src
 
 executables:
-  placeholder-name:
+  aoc2022:
     source-dirs: app
     main: Main.hs
     dependencies:
-      - placeholder-name
+      - aoc2022
 
 tests:
-  placeholder-name-test:
+  aoc2022-test:
     source-dirs: test
     main: Spec.hs
     dependencies:
-      - placeholder-name
+      - aoc2022
       - hspec
       - QuickCheck
       - generic-random
