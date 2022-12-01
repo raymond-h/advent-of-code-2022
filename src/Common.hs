@@ -9,9 +9,7 @@ import Text.Megaparsec
     ShowErrorComponent,
     errorBundlePretty,
     parse,
-    some,
   )
-import Text.Megaparsec.Char (digitChar)
 
 type Parser = Parsec Void LT.Text
 
@@ -23,6 +21,3 @@ parseFromFile p file = do
       putStrLn $ errorBundlePretty peb
       exitFailure
     Right a -> return a
-
-integer :: Parser Integer
-integer = read <$> some digitChar
