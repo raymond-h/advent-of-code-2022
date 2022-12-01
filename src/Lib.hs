@@ -1,9 +1,8 @@
 module Lib where
 
-addNumbers :: Num n => n -> n -> n
-addNumbers a b = a + b
+import qualified Day1
 
 doThing :: IO ()
 doThing = do
-  putStrLn "hello world"
-  print $ addNumbers (5 :: Integer) 4
+  Day1.part1 "day-1-input.txt"
+  Day1.part2 "day-1-input.txt"
