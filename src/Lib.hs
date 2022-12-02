@@ -1,8 +1,8 @@
 module Lib where
 
-import qualified Day1
+import qualified Day2 as D
 
 doThing :: IO ()
 doThing = do
-  Day1.part1 "day-1-input.txt"
-  Day1.part2 "day-1-input.txt"
+  D.part1 "day-2-input.txt"
+  D.part2 "day-2-input.txt"
