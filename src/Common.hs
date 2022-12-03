@@ -1,5 +1,6 @@
 module Common where
 
+import Data.Char (isLetter)
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.IO as LT
 import Data.Void (Void)
@@ -9,6 +10,7 @@ import Text.Megaparsec
     ShowErrorComponent,
     errorBundlePretty,
     parse,
+    takeWhile1P,
   )
 
 type Parser = Parsec Void LT.Text
@@ -21,3 +23,6 @@ parseFromFile p file = do
       putStrLn $ errorBundlePretty peb
       exitFailure
     Right a -> return a
+
+letters1 :: Parser LT.Text
+letters1 = takeWhile1P (Just "letters") isLetter
