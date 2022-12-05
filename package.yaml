@@ -17,6 +17,9 @@ dependencies:
   - text
   - megaparsec
 
+default-extensions:
+  - OverloadedStrings
+
 ghc-options:
   - -Wall
   - -Wcompat

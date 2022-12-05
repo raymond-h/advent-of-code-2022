@@ -9,8 +9,10 @@ import Text.Megaparsec
   ( Parsec,
     ShowErrorComponent,
     errorBundlePretty,
+    many,
     parse,
     takeWhile1P,
+    try,
   )
 
 type Parser = Parsec Void LT.Text
@@ -26,3 +28,8 @@ parseFromFile p file = do
 
 letters1 :: Parser LT.Text
 letters1 = takeWhile1P (Just "letters") isLetter
+
+sepBy1NonGreedy :: Parser b -> Parser a -> Parser [b]
+sepBy1NonGreedy p sep = do
+  x <- p
+  (x :) <$> many (try (sep *> p))
