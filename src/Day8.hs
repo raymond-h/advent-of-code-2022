@@ -74,9 +74,7 @@ lineOfIndices :: (Index, Index) -> Index -> (Int, Int) -> [Index]
 lineOfIndices bounds' start k = tail $ takeWhile (inRange bounds') $ iterate (addTuple k) start
 
 lineOfValues :: Array Index a -> Index -> (Int, Int) -> [a]
-lineOfValues arr start k = map (arr A.!) is
-  where
-    is = lineOfIndices (bounds arr) start k
+lineOfValues arr start k = map (arr A.!) $ lineOfIndices (bounds arr) start k
 
 data FocusedArray i a = FocusedArray i (Array i a) deriving (Eq, Show, Functor)
 
@@ -96,6 +94,12 @@ instance Ix i => Comonad (FocusedArray i) where
       go :: Array i a -> Array i (FocusedArray i a)
       go arr = array (bounds arr) $ map (\i -> (i, focusAt i arr)) (indices arr)
 
+extendArray :: Ix i => (FocusedArray i a -> b) -> Array i a -> Array i b
+extendArray f = unfocus . extend f . focusAt undefined
+
+count :: Foldable f => (a -> Bool) -> f a -> Int
+count p = length . filter p . toList
+
 everyDirection :: [(Int, Int)]
 everyDirection = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
@@ -110,9 +114,7 @@ part1 :: FilePath -> IO ()
 part1 inputPath = do
   input <- parseFromFile (inputParser <* eof) inputPath
 
-  let result = unfocus $ extend isVisible $ focusAt (1, 1) input
-
-  print $ length $ filter id $ toList result
+  print $ count (== True) $ extendArray isVisible input
 
 takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
 takeWhileInclusive _ [] = []
@@ -132,6 +134,4 @@ part2 :: FilePath -> IO ()
 part2 inputPath = do
   input <- parseFromFile (inputParser <* eof) inputPath
 
-  let result = unfocus $ extend scenicScore $ focusAt (1, 1) input
-
-  print $ maximum result
+  print $ maximum $ extendArray scenicScore input
