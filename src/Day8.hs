@@ -100,11 +100,11 @@ extendArray f = unfocus . extend f . focusAt undefined
 count :: Foldable f => (a -> Bool) -> f a -> Int
 count p = length . filter p . toList
 
-everyDirection :: [(Int, Int)]
-everyDirection = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+allDirections :: [(Int, Int)]
+allDirections = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
 isVisible :: FocusedArray Index Int -> Bool
-isVisible (FocusedArray focusIndex arr) = any visibleInDirection everyDirection
+isVisible (FocusedArray focusIndex arr) = any visibleInDirection allDirections
   where
     x = arr A.! focusIndex
 
@@ -123,7 +123,7 @@ takeWhileInclusive p (x : rest)
   | otherwise = x : takeWhileInclusive p rest
 
 scenicScore :: FocusedArray Index Int -> Integer
-scenicScore (FocusedArray focusIndex arr) = product $ map (toInteger . scoreForDirection) everyDirection
+scenicScore (FocusedArray focusIndex arr) = product $ map (toInteger . scoreForDirection) allDirections
   where
     x = arr A.! focusIndex
 
