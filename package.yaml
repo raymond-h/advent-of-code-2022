@@ -18,6 +18,8 @@ dependencies:
   - megaparsec
   - pretty-simple
   - recursion-schemes
+  - array
+  - comonad
 
 default-extensions:
   - OverloadedStrings
