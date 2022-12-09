@@ -17,3 +17,5 @@ fi
 if [ ! -e "day-$DAY-input.txt" ]; then
   aocdl -output 'day-{{.Day}}-input.txt'
 fi
+
+sed -r -i -e "s|Day[[:digit:]]+|Day$DAY|" -e "s|day-[[:digit:]]+|day-$DAY|" src/Lib.hs
