@@ -20,6 +20,7 @@ dependencies:
   - recursion-schemes
   - array
   - comonad
+  - linear
 
 default-extensions:
   - OverloadedStrings
