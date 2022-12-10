@@ -21,6 +21,8 @@ dependencies:
   - array
   - comonad
   - linear
+  - mtl
+  - optics
 
 default-extensions:
   - OverloadedStrings

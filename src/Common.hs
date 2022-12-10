@@ -14,6 +14,8 @@ import Text.Megaparsec
     takeWhile1P,
     try,
   )
+import qualified Text.Megaparsec.Byte.Lexer as L
+import Text.Megaparsec.Char (hspace)
 
 type Parser = Parsec Void LT.Text
 
@@ -33,3 +35,6 @@ sepBy1NonGreedy :: Parser b -> Parser a -> Parser [b]
 sepBy1NonGreedy p sep = do
   x <- p
   (x :) <$> many (try (sep *> p))
+
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme hspace
