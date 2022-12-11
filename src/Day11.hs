@@ -17,7 +17,6 @@ import qualified Data.Map.Strict as M
 import Data.Maybe (fromJust)
 import Data.Monoid (Endo (Endo))
 import Data.Ord (Down (Down))
-import Debug.Trace (traceM)
 import GHC.Generics (Generic)
 import Optics
   ( At (at),
@@ -125,8 +124,6 @@ runMonkeyTurn onInspect' monkeyNum = do
 
 runRound :: (MonadState MonkeyBusinessState m, MonadReader MonkeyBusinessEnv m) => (Integer -> Integer -> m ()) -> m ()
 runRound onInspect' = do
-  traceM "Start round"
-
   -- M.keys returns in ascending order, which is exactly the order we want
   nums <- gets M.keys
   forM_ nums $ \num -> runMonkeyTurn onInspect' num
