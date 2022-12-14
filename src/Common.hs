@@ -54,3 +54,6 @@ unpackJust mma = do
   case ma of
     Nothing -> fail "received Nothing, expected Just"
     (Just a) -> pure a
+
+count :: Foldable f => (a -> Bool) -> f a -> Int
+count p = length . filter p . toList

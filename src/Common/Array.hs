@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 module Common.Array where
 
@@ -38,3 +39,6 @@ showArray f arr = intercalate "\n" (map showLine ys)
 
 showArrayBasic :: (Ix i, Show a) => Array (V2 i) a -> String
 showArrayBasic = showArray (head . show)
+
+defaultArray :: Ix i => (i, i) -> e -> Array i e
+defaultArray bounds' e = array bounds' (map (,e) (range bounds'))
