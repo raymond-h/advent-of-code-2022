@@ -23,6 +23,7 @@ dependencies:
   - linear
   - mtl
   - optics
+  - parallel
 
 default-extensions:
   - OverloadedStrings
@@ -47,6 +48,8 @@ executables:
     main: Main.hs
     dependencies:
       - aoc2022
+    ghc-options:
+      - -threaded
 
 tests:
   aoc2022-test:

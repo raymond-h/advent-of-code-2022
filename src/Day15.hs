@@ -5,6 +5,7 @@ module Day15 where
 
 import Common (Parser, lexeme, parseFromFile, the)
 import Control.Monad (void)
+import Control.Parallel.Strategies (parList, rdeepseq, using)
 import Data.Ix (Ix (inRange, range))
 import qualified Data.Set as S
 import GHC.Generics (Generic)
@@ -117,6 +118,8 @@ part2 inputPath = do
 
       tuningFrequency (V2 x y) = x * 4_000_000 + y
 
-      solution = the $ filter (\p -> isInsideField p && all (isOutsideRange p . sensorPositionAndManhattanDistance) input) $ foldMap go input
+      solutionSeq = map (filter (\p -> isInsideField p && all (isOutsideRange p . sensorPositionAndManhattanDistance) input) . go) input
+
+      solution = the $ concat (solutionSeq `using` parList rdeepseq)
 
   print $ tuningFrequency <$> solution
