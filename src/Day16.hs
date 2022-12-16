@@ -5,7 +5,7 @@
 
 module Day16 (part1, part2, graphVisualization) where
 
-import Common (Parser, lexeme, parseFromFile, sepBy1NonGreedy)
+import Common (Parser, char, decimal, lexeme, parseFromFile, sepBy1NonGreedy, string)
 import Control.Monad (guard, void)
 import Data.Bifunctor (bimap, second)
 import Data.Foldable (fold, maximumBy, minimumBy)
@@ -19,7 +19,6 @@ import GHC.Generics (Generic)
 import Optics (at, folded, mapped, over, preview, toListOf, (%), _1, _2, _Just)
 import Text.Megaparsec (MonadParsec (eof), choice, count, sepEndBy1)
 import qualified Text.Megaparsec.Char as MC
-import qualified Text.Megaparsec.Char.Lexer as MCL
 
 type ValveName = LT.Text
 
@@ -29,15 +28,6 @@ data ValveAndTunnels = ValveAndTunnels
     tunnelsTo :: [(Integer, ValveName)]
   }
   deriving (Eq, Show, Generic)
-
-char :: Char -> Parser Char
-char = lexeme . MC.char
-
-string :: LT.Text -> Parser LT.Text
-string = lexeme . MC.string
-
-decimal :: Num a => Parser a
-decimal = lexeme MCL.decimal
 
 valveNameParser :: Parser ValveName
 valveNameParser = LT.pack <$> lexeme (count 2 MC.letterChar)

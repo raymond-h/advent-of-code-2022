@@ -1,6 +1,6 @@
 module Day4 where
 
-import Common
+import Common (Parser, parseFromFile)
 import qualified Data.Set as S
 import Text.Megaparsec (sepEndBy1)
 import Text.Megaparsec.Char (char, newline)

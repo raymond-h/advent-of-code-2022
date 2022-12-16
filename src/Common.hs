@@ -19,6 +19,8 @@ import Text.Megaparsec
   )
 import qualified Text.Megaparsec.Byte.Lexer as L
 import Text.Megaparsec.Char (hspace)
+import qualified Text.Megaparsec.Char as MC
+import qualified Text.Megaparsec.Char.Lexer as MCL
 
 type Parser = Parsec Void LT.Text
 
@@ -41,6 +43,15 @@ sepBy1NonGreedy p sep = do
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme hspace
+
+char :: Char -> Parser Char
+char = lexeme . MC.char
+
+string :: LT.Text -> Parser LT.Text
+string = lexeme . MC.string
+
+decimal :: Num a => Parser a
+decimal = lexeme MCL.decimal
 
 the :: (Foldable f, Ord a) => f a -> Maybe a
 the xs = do
