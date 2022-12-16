@@ -6,17 +6,20 @@
 module Day16 (part1, part2, graphVisualization) where
 
 import Common (Parser, char, decimal, lexeme, parseFromFile, sepBy1NonGreedy, string)
-import Control.Monad (guard, void)
+import Control.Monad (forM_, guard, void)
+import Data.Array (Array)
+import qualified Data.Array as A
+import Data.Array.ST (MArray (newArray), readArray, runSTArray, writeArray)
 import Data.Bifunctor (bimap, second)
-import Data.Foldable (fold, maximumBy, minimumBy)
+import Data.Foldable (fold, maximumBy)
 import qualified Data.Map.Strict as M
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as S
 import qualified Data.Text.Lazy as LT
 import Data.Tuple (swap)
 import GHC.Generics (Generic)
-import Optics (at, folded, mapped, over, preview, toListOf, (%), _1, _2, _Just)
+import Optics (at, mapped, over, preview, (%), _2, _Just)
 import Text.Megaparsec (MonadParsec (eof), choice, count, sepEndBy1)
 import qualified Text.Megaparsec.Char as MC
 
@@ -61,71 +64,18 @@ graphVisualization vats = "strict graph {\n" <> foldMap (fold . showVaT) vats <>
     showVaTEdge valveName (cost, otherValveName) =
       "  " <> valveName <> " -- " <> otherValveName <> " [label=" <> LT.pack (show cost) <> "]\n"
 
-startingValve :: LT.Text
-startingValve = "AA"
-
 valveAndTunnelsAsMap :: [ValveAndTunnels] -> M.Map LT.Text ValveAndTunnels
 valveAndTunnelsAsMap vats = M.fromList $ map (\vat -> (valveName vat, vat)) vats
 
-simplifyInput :: M.Map LT.Text ValveAndTunnels -> M.Map LT.Text ValveAndTunnels
-simplifyInput m
-  | m == m' = M.filter (\vat -> valveName vat == startingValve || flowRate vat /= 0) m
-  | otherwise = simplifyInput m'
-  where
-    m' = M.mapWithKey simplifyEntry m
-
-    simplifyEntry :: ValveName -> ValveAndTunnels -> ValveAndTunnels
-    simplifyEntry vn = over #tunnelsTo (concatMap (replacementTunnels vn))
-
-    replacementTunnels :: ValveName -> (Integer, ValveName) -> [(Integer, ValveName)]
-    replacementTunnels vn orig@(cost, vn')
-      | shouldFilterOut vn' =
-          filter ((/= vn) . snd) $
-            map (over _1 (+ cost)) $
-              toListOf (at vn' % _Just % #tunnelsTo % folded) m
-      | otherwise = [orig]
-
-    shouldFilterOut vn = vn /= startingValve && preview (at vn % _Just % #flowRate) m == Just 0
-
-pathsBetween :: M.Map LT.Text ValveAndTunnels -> ValveName -> ValveName -> [[(Integer, ValveName)]]
-pathsBetween m vn vn'
-  | vn == vn' = return [(0, vn)]
-  | otherwise = map ((0, vn) :) $ inner vn (S.singleton vn) $ neighbors vn
-  where
-    neighbors :: ValveName -> [(Integer, ValveName)]
-    neighbors vn'' = toListOf (at vn'' % _Just % #tunnelsTo % folded) m
-
-    inner :: ValveName -> S.Set ValveName -> [(Integer, ValveName)] -> [[(Integer, ValveName)]]
-    inner _ _ [] = []
-    inner prev visited candidates = do
-      orig@(_, c) <- candidates
-
-      if c == vn'
-        then return [orig]
-        else do
-          let candidates' = filter (flip S.notMember visited . snd) $ filter ((/= prev) . snd) $ neighbors c
-
-          p <- inner c (S.insert c visited) candidates'
-
-          return $ orig : p
-
-shortestPathBetween :: M.Map LT.Text ValveAndTunnels -> ValveName -> ValveName -> [(Integer, ValveName)]
-shortestPathBetween m vn vn' = minimumBy (comparing (sum . map fst)) $ pathsBetween m vn vn'
-
 type CostFunction = ValveName -> ValveName -> Integer
 
-flowRateOf :: M.Map LT.Text ValveAndTunnels -> ValveName -> Integer
-flowRateOf m vn =
-  fromMaybe (error $ "unknown valve name " ++ LT.unpack vn) $
-    preview (at vn % _Just % #flowRate) m
+type FlowRateFunction = ValveName -> Integer
 
-enumerateOptions :: M.Map LT.Text ValveAndTunnels -> CostFunction -> Integer -> ValveName -> [(Integer, S.Set ValveName)]
-enumerateOptions m costFn timeLeft startingValve' =
+enumerateOptions :: S.Set ValveName -> FlowRateFunction -> CostFunction -> Integer -> ValveName -> [(Integer, S.Set ValveName)]
+enumerateOptions allVns flowRateFn costFn timeLeft startingValve' =
   map (second (S.insert startingValve')) $
-    inner timeLeft startingValve' (S.delete startingValve' $ M.keysSet m)
+    inner timeLeft startingValve' (S.delete startingValve' allVns)
   where
-    flowRateOf' = flowRateOf m
-
     keepHighest :: [(Integer, S.Set ValveName)] -> [(Integer, S.Set ValveName)]
     keepHighest rs = map swap $ M.assocs $ M.fromListWith max $ map swap rs
 
@@ -136,12 +86,11 @@ enumerateOptions m costFn timeLeft startingValve' =
 
       let timeLeftInner' = timeLeftInner - costFn prevVn vn - 1
           vats' = S.delete vn vats
-          releasedPressure = timeLeftInner' * flowRateOf' vn
+          releasedPressure = timeLeftInner' * flowRateFn vn
 
       if timeLeftInner' > 0
         then do
           x <- (0, S.empty) : keepHighest (inner timeLeftInner' vn vats')
-          -- let x = maximumBy (comparing fst) $ inner timeLeftInner' vn vats'
 
           return $ bimap (+ releasedPressure) (S.insert vn) x
         else return (0, S.empty)
@@ -153,23 +102,67 @@ pairings as = do
   guard $ a /= b
   return (a, b)
 
+addMaybe :: Maybe Integer -> Maybe Integer -> Maybe Integer
+addMaybe mA mB = (+) <$> mA <*> mB
+
+minMaybe :: Maybe Integer -> Maybe Integer -> Maybe Integer
+minMaybe Nothing a = a
+minMaybe a Nothing = a
+minMaybe (Just a) (Just b) = Just $ min a b
+
+floydWarshall :: Int -> M.Map (Int, Int) Integer -> Array (Int, Int) Integer
+floydWarshall labelCount ws = fmap fromJust $ runSTArray $ do
+  arr <- newArray ((1, 1), (labelCount, labelCount)) Nothing
+
+  forM_ (M.assocs ws) $ \((u, v), w') -> do
+    writeArray arr (u, v) $ Just w'
+
+  forM_ [1 .. labelCount] $ \v -> do
+    writeArray arr (v, v) $ Just 0
+
+  forM_ [1 .. labelCount] $ \k -> do
+    forM_ [1 .. labelCount] $ \i -> do
+      forM_ [1 .. labelCount] $ \j -> do
+        w' <- readArray arr (i, j)
+        w'' <- addMaybe <$> readArray arr (i, k) <*> readArray arr (k, j)
+        writeArray arr (i, j) $ minMaybe w' w''
+
+  return arr
+
+makeCostFunction :: [ValveAndTunnels] -> CostFunction
+makeCostFunction vats = costFn
+  where
+    labelIndexMap = M.fromList $ zip (map valveName vats) [1 :: Int ..]
+    labelCount = length vats
+
+    go :: ValveName -> (Integer, ValveName) -> ((Int, Int), Integer)
+    go vn (cost, vn') = ((labelIndexMap M.! vn, labelIndexMap M.! vn'), cost)
+
+    ws :: M.Map (Int, Int) Integer
+    ws = M.fromList $ concatMap (\vat -> map (go $ valveName vat) $ tunnelsTo vat) vats
+
+    floydWarshallArray = floydWarshall labelCount ws
+
+    costFn :: CostFunction
+    costFn prevVn vn = floydWarshallArray A.! (labelIndexMap M.! prevVn, labelIndexMap M.! vn)
+
+makeFlowRateFunction :: M.Map ValveName ValveAndTunnels -> ValveName -> Integer
+makeFlowRateFunction m vn =
+  fromMaybe (error $ "unknown valve name " ++ LT.unpack vn) $
+    preview (at vn % _Just % #flowRate) m
+
+startingValve :: LT.Text
+startingValve = "AA"
+
 part1 :: FilePath -> IO ()
 part1 inputPath = do
   input <- parseFromFile (inputParser <* eof) inputPath
 
-  let inputMap = valveAndTunnelsAsMap input
-      inputMap' = simplifyInput inputMap
+  let nonZeroFlowRateValves = S.fromList $ map valveName $ filter ((> 0) . flowRate) input
+      flowRateFn = makeFlowRateFunction (valveAndTunnelsAsMap input)
+      costFn = makeCostFunction input
 
-      costMap =
-        M.fromList $
-          map (\x -> (x, sum $ map fst $ uncurry (shortestPathBetween inputMap') x)) $
-            pairings $
-              M.keys inputMap'
-
-      costFn :: CostFunction
-      costFn prevVn vn = costMap M.! (prevVn, vn)
-
-  let xs = enumerateOptions inputMap' costFn 30 startingValve
+  let xs = enumerateOptions nonZeroFlowRateValves flowRateFn costFn 30 startingValve
 
   print $ fst $ maximumBy (comparing fst) xs
 
@@ -177,19 +170,11 @@ part2 :: FilePath -> IO ()
 part2 inputPath = do
   input <- parseFromFile (inputParser <* eof) inputPath
 
-  let inputMap = valveAndTunnelsAsMap input
-      inputMap' = simplifyInput inputMap
+  let nonZeroFlowRateValves = S.fromList $ map valveName $ filter ((> 0) . flowRate) input
+      flowRateFn = makeFlowRateFunction (valveAndTunnelsAsMap input)
+      costFn = makeCostFunction input
 
-      costMap =
-        M.fromList $
-          map (\x -> (x, sum $ map fst $ uncurry (shortestPathBetween inputMap') x)) $
-            pairings $
-              M.keys inputMap'
-
-      costFn :: CostFunction
-      costFn prevVn vn = costMap M.! (prevVn, vn)
-
-  let xs = enumerateOptions inputMap' costFn 26 startingValve
+  let xs = enumerateOptions nonZeroFlowRateValves flowRateFn costFn 26 startingValve
       ys =
         filter (\((_, a), (_, b)) -> S.disjoint a b) $
           pairings $
