@@ -1,3 +1,7 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE InstanceSigs #-}
+
 module Common where
 
 import Control.Monad (guard)
@@ -7,6 +11,7 @@ import qualified Data.Set as S
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.IO as LT
 import Data.Void (Void)
+import Linear (V2 (V2), V3 (V3))
 import System.Exit (exitFailure)
 import Text.Megaparsec
   ( Parsec,
@@ -68,3 +73,19 @@ unpackJust mma = do
 
 count :: Foldable f => (a -> Bool) -> f a -> Int
 count p = length . filter p . toList
+
+class Tuplifiable f t | f -> t, t -> f where
+  tuplify :: f -> t
+  untuplify :: t -> f
+
+instance Tuplifiable (V2 i) (i, i) where
+  tuplify :: V2 i -> (i, i)
+  tuplify (V2 x y) = (x, y)
+  untuplify :: (i, i) -> V2 i
+  untuplify (x, y) = V2 x y
+
+instance Tuplifiable (V3 i) (i, i, i) where
+  tuplify :: V3 i -> (i, i, i)
+  tuplify (V3 x y z) = (x, y, z)
+  untuplify :: (i, i, i) -> V3 i
+  untuplify (x, y, z) = V3 x y z
