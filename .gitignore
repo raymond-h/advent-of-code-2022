@@ -33,3 +33,4 @@ cabal.project.local~
 day-*-input.txt
 *.log
 *.dot
+*.xraw

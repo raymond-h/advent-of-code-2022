@@ -26,6 +26,8 @@ dependencies:
   - parallel
   - optparse-applicative
   - time
+  - binary
+  - bytestring
 
 default-extensions:
   - OverloadedStrings
