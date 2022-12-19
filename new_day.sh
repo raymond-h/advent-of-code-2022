@@ -6,11 +6,23 @@ if [ ! -e "src/Day$DAY.hs" ]; then
   cat > "src/Day$DAY.hs" <<EOF
 module Day$DAY where
 
+import Common (Parser, parseFromFile)
+
+inputParser :: Parser _
+inputParser = _
+
 part1 :: FilePath -> IO ()
-part1 _ = return ()
+part1 inputPath = do
+  input <- parseFromFile inputParser inputPath
+
+  print input
 
 part2 :: FilePath -> IO ()
-part2 _ = return ()
+part2 inputPath = do
+  input <- parseFromFile inputParser inputPath
+
+  -- print input
+  () <$ return input
 EOF
 fi
 
