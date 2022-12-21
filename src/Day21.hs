@@ -5,7 +5,6 @@ module Day21 (part1, part2) where
 
 import Common (Parser, char, decimal, lexeme, parseFromFile)
 import qualified Common
-import Control.Monad (void)
 import Data.Fix (Fix (Fix))
 import Data.Foldable (find)
 import Data.Functor.Foldable (cata)
@@ -47,10 +46,7 @@ monkeyShoutParser =
     ]
 
 monkeyParser :: Parser Monkey
-monkeyParser = do
-  name' <- letters1
-  void $ char ':'
-  Monkey name' <$> monkeyShoutParser
+monkeyParser = Monkey <$> letters1 <* char ':' <*> monkeyShoutParser
 
 inputParser :: Parser [Monkey]
 inputParser = sepEndBy1 monkeyParser newline <* eof
