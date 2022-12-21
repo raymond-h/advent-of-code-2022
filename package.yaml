@@ -28,6 +28,8 @@ dependencies:
   - time
   - binary
   - bytestring
+  - data-fix
+  - deriving-compat
 
 default-extensions:
   - OverloadedStrings
