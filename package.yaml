@@ -30,6 +30,7 @@ dependencies:
   - bytestring
   - data-fix
   - deriving-compat
+  - deepseq
 
 default-extensions:
   - OverloadedStrings

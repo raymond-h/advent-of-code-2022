@@ -45,3 +45,8 @@ showArrayBasic = showArray (head . show)
 
 defaultArray :: Ix i => (i, i) -> e -> Array i e
 defaultArray bounds' e = array bounds' (map (,e) (range bounds'))
+
+(!?) :: A.Ix i => A.Array i a -> i -> Maybe a
+arr !? p
+  | A.inRange (A.bounds arr) p = Just $ arr A.! p
+  | otherwise = Nothing
