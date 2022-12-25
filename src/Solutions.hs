@@ -17,6 +17,7 @@ import qualified Day20
 import qualified Day21
 import qualified Day22
 import qualified Day23
+import qualified Day24
 import qualified Day3
 import qualified Day4
 import qualified Day5
@@ -52,5 +53,6 @@ solutions =
       (20, (Day20.part1, Day20.part2)),
       (21, (Day21.part1, Day21.part2)),
       (22, (Day22.part1, Day22.part2)),
-      (23, (Day23.part1, Day23.part2))
+      (23, (Day23.part1, Day23.part2)),
+      (24, (Day24.part1, Day24.part2))
     ]
