@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DAY="$(date '+%-d')"
+DAY="$(TZ='America/New_York' date '+%-d')"
 
 if [ ! -e "src/Day$DAY.hs" ]; then
   cat > "src/Day$DAY.hs" <<EOF
@@ -27,7 +27,7 @@ EOF
 fi
 
 if [ ! -e "day-$DAY-input.txt" ]; then
-  aocdl -output 'day-{{.Day}}-input.txt'
+  aocdl -day "$DAY" -output 'day-{{.Day}}-input.txt'
 fi
 
 python3 generate_solutions_list.py
